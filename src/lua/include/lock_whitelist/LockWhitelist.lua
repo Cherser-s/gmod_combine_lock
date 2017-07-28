@@ -142,7 +142,7 @@ Whitelist.CheckWhitelist = function(data)
 	if not (isbool(data.Owners.player_rules.Admins) and isbool(data.Owners.player_rules.SuperAdmins)) then 
 		return false
 	end
-		
+			
 	for K,Rule in ipairs(data.Rules) do
 		if not Whitelist.IsRule(Rule) then 
 			return false
@@ -150,13 +150,35 @@ Whitelist.CheckWhitelist = function(data)
 	end
 	return true
 end
+
+function Whitelist:IsAllowedAdminsEdit()
+	return self.Owners.player_rules.Admins 
+end
+
+function Whitelist:IsAllowedSuperAdminsEdit()
+	return self.Owners.player_rules.SuperAdmins 
+end	
+
+function Whitelist:AllowAdminsEdit(val)
+	self.Owners.player_rules.Admins = val
+end
+
+function Whitelist:AllowSuperAdminsEdit(val)
+	self.Owners.player_rules.SuperAdmins = val
+end	
 	
 function Whitelist:AddOwner(ply)
 		
 	if isentity(ply) and ply:IsPlayer() then
-		self:AddOwner(ply:SteamID())
-	elseif isstring(ply) and COMBINE_LOCK.IsSteamID(ply) and (not table.HasValue(self.Owners.player_ids,ply)) then
-		table.insert(self.Owners.player_ids,ply)
+		return self:AddOwner(ply:SteamID())
+	elseif isstring(ply) and COMBINE_LOCK.IsSteamID(ply) then
+		if not table.HasValue(self.Owners.player_ids,ply) then
+			table.insert(self.Owners.player_ids,ply)
+			return true
+		else 
+			return false
+		end
+			
 	else 
 		error("Expected string or player, got "..type(ply))
 	end

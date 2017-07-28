@@ -180,7 +180,6 @@ COMBINE_LOCK.RULE_EDITOR = {
 					
 				
 		self.Whitelist = whitelist
-		--self.Whitelist.Rules = {{Allow = false, Type = "Admin"},{Allow = true, Type = "Admin"}}
 		--also set it to children editors
 		self.RuleList:Clear()
 		

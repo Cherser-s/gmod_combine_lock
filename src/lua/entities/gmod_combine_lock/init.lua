@@ -91,8 +91,9 @@ function ENT:Initialize()
 end
 
 function ENT:AttachToDoor(door,isbone,id)
-	if not self:GetNWBool("attach_to_door",false) then return end
-	if not door:IsValid() then return end
+	if not (self:GetNWBool("attach_to_door",false) and door:IsValid()) then 
+		return 
+	end
 	if isbone then 
 		self:FollowBone(door,id)
 	else
@@ -104,7 +105,9 @@ function ENT:AttachToDoor(door,isbone,id)
 end
 
 function ENT:TriggerDoor()
-	if not self:GetNWBool("attach_to_door",false) then return end
+	if not self:GetNWBool("attach_to_door",false) then
+		return 
+	end
 	local ent=self.attached_door
 	if not ent then return end
 	if not ent:IsValid() then return end
