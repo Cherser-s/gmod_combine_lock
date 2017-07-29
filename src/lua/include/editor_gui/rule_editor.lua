@@ -116,7 +116,7 @@ COMBINE_LOCK.RULE_EDITOR = {
 			self.AttachedRule = Rule
 			local data = COMBINE_LOCK.RULE_EDITOR.RuleListItem[Rule.Type](Rule)
 			local text = "Type: "..Rule.Type..", Allow if matches: "..tostring(Rule.Allow)
-			if (data!="") then
+			if (data~="") then
 				text = text..", "..data
 			end
 			panel.label:SetText(text)
@@ -159,7 +159,7 @@ COMBINE_LOCK.RULE_EDITOR = {
 		frame:SetRule(table.Copy(Rule))
 		frame:SetOnFinishedCallback({
 			OnSuccess = function(caller,rule)
-				if Rule!=nil then
+				if Rule~=nil then
 					self.RuleList:GetChildren()[index]:SetRule(rule)
 					self.Whitelist.Rules[index] = rule
 				else

@@ -209,7 +209,7 @@ COMBINE_LOCK.RuleEditDialog = {
 			self.type_list:Dock(FILL)
 			
 			function self.type_list:OnChildSelect(caller,state)
-				if state and caller != self.SelectedPanel then
+				if state and caller ~= self.SelectedPanel then
 					if self.SelectedPanel then
 						self.SelectedPanel:SetSelected(false)
 					end
@@ -281,7 +281,7 @@ COMBINE_LOCK.RuleEditDialog = {
 			self:OnTypeEdited()
 		end,
 		OnTypeEdited = function(self)
-			if isstring(self.Rule.Type) and self.Rule.Type!="" then
+			if isstring(self.Rule.Type) and self.Rule.Type~="" then
 				self.EditorCallback.Allowed(self)
 			else 
 				self.EditorCallback.Disallowed(self)

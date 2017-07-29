@@ -60,11 +60,6 @@ if SERVER then
 		self.EntTmp=nil
 		self:SetStage(1)
 	end
-
-//duplicator.RegisterEntityClass("gmod_combine_lock", Lock.PasteEnt, "Data","value_off", "value_on", "description", "entityout","Whitelist" )
-
-
-
 	
 	function TOOL:GetConVars() 
 		return self:GetClientNumber( "use_with_door" ) ~= 0, self:GetClientNumber( "value_off" ), self:GetClientNumber( "value_on" ),
@@ -78,7 +73,7 @@ end
 
 
 function TOOL:Reload(trace)
-	if self:GetStage()!=1 then return false end
+	if self:GetStage()~=1 then return false end
 	if (!trace.HitPos) then return false end
 	if (trace.Entity:IsPlayer()) or 
 	not (trace.Entity:IsValid() and 
@@ -122,7 +117,7 @@ end
 
 function TOOL:LeftClick(trace)
 
-	if self:GetStage()!=1 or (!trace.HitPos) or (trace.Entity:IsPlayer()) then 
+	if self:GetStage()~=1 or (not trace.HitPos) or (trace.Entity:IsPlayer()) then 
 		return false 
 	end
 	if CLIENT then 
@@ -132,7 +127,7 @@ function TOOL:LeftClick(trace)
 	local door=self:GetClientNumber("use_with_door")
 	local  value_off = self:GetClientNumber("value_off")
 	local value_on = self:GetClientNumber("value_on")
-	local description  = self:GetClientNumber("description")
+	local description = self:GetClientNumber("description")
 	local entityout = self:GetClientNumber("entityout")
 	local Whitelist = tobool(self:GetClientNumber("Whitelist"))
 	if trace.Entity:IsValid() then
@@ -153,12 +148,12 @@ function TOOL:LeftClick(trace)
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch,Ang.roll= Ang.roll,-Ang.pitch
 	Ang.yaw = Ang.yaw-90
-    if ( !ply:CheckLimit( "combine_locks" ) ) then 
+    if ( not ply:CheckLimit( "combine_locks" ) ) then 
 		return false 
 	end
 	
 	local gmod_combine_lock = ents.Create( "gmod_combine_lock" )
-	if (!gmod_combine_lock:IsValid()) then 
+	if (not gmod_combine_lock:IsValid()) then 
 		return false 
 	end
 
@@ -207,7 +202,7 @@ end
 
 
 function TOOL:RightClick(trace)
-	if (!trace.HitPos) or trace.Entity:IsPlayer() then return false end
+	if (not trace.HitPos) or trace.Entity:IsPlayer() then return false end
 	if CLIENT then return true end
 	local ent=trace.Entity
 
@@ -223,7 +218,7 @@ function TOOL:RightClick(trace)
 	end
 	local stage=self:GetStage()
 	if stage==1 then 
-		if ent:GetClass()!="gmod_combine_lock" then 
+		if ent:GetClass()~="gmod_combine_lock" then 
 			return false 
 		end
 		self.EntTmp=ent

@@ -8,10 +8,8 @@ ENT.WireDebugName	= "Combine button"
 end
 
 ENT.PrintName       = "Combine Lock"
-util.AddNetworkString("Send_Whitelist21")
 util.AddNetworkString("gmod_combine_lock_send_whitelist")
 util.AddNetworkString("gmod_combine_lock_receive_whitelist")
-util.AddNetworkString("Get_Whitelist21")
 COMBINE_LOCK = COMBINE_LOCK or {}
 
 local model="models/props_combine/combine_lock01.mdl"
@@ -69,10 +67,13 @@ DoorTable["prop_dynamic"][4]= "models/props_lab/elevatordoor.mdl"
 DoorTable["prop_dynamic"][5]= "models/props_doors/doorklab01.mdl"
 
 function IsAutoDoor(ent)
-local mod=ent:GetModel()
-for K,V in pairs(DoorTable["prop_dynamic"])
-do  if mod==V then return true end end
-return false
+	local mod=ent:GetModel()
+	for K,V in pairs(DoorTable["prop_dynamic"]) do
+		if mod==V then
+			return true
+		end 
+	end
+	return false
 end
 
 
@@ -152,40 +153,61 @@ function ENT:SetWhitelistData(data,sender)
 	end
 end
 
-net.Receive("Get_Whitelist21",function(len,ply)
-	local ent=net.ReadEntity()
-	if not ent:IsOwner(ply) then  return end
-
-	if ent.Whitelist_type!=0 then return end
-	ent.Owners=net.ReadTable()
-	ent.Rules=net.ReadTable()
- end)
  
-function ENT:DupeDeploy(ply,door, value_off, value_on, description,entityout, Whitelist_type,Rules,Owners)
-	if not (Whitelist_type and WireLib) then
-		self.Whitelist = COMBINE_LOCK.Whitelist()
-	end
-	self:Setup(ply,door, value_off, value_on, description,entityout, Whitelist_type)
+function ENT:DupeDeploy(ply,door, value_off, value_on, description,entityout, Whitelist_type,Whitelist)	
+	self:Setup(ply,door, value_off, value_on, description,entityout, Whitelist_type,Whitelist)
+end
+--just in case it will be spawnable from main menu
+function ENT:SpawnFunction(ply,trace,class)
+	if ( not trace.Hit ) then return end
 
+	local Ang = trace.HitNormal:Angle()
+	Ang.pitch,Ang.roll= Ang.roll,-Ang.pitch
+	Ang.yaw = Ang.yaw-90
+    if ( not ply:CheckLimit( "combine_locks" ) ) then 
+		return false 
+	end
+	
+	local gmod_combine_lock = ents.Create( "gmod_combine_lock" )
+	if (not gmod_combine_lock:IsValid()) then 
+		return false 
+	end
+
+	gmod_combine_lock:SetAngles( Ang )
+	gmod_combine_lock:SetPos( trace.HitPos )
+	gmod_combine_lock:Spawn()
+	gmod_combine_lock:Setup(ply)
+	gmod_combine_lock:Activate()
+	
+	ply:AddCount( "combine_locks", gmod_combine_lock )
+	local min = gmod_combine_lock:OBBMins()
+	gmod_combine_lock:SetPos( trace.HitPos - trace.HitNormal * min.z/2.8 )
+	
+	
+	
+	ply:AddCleanup( "combine_locks", gmod_combine_lock )
+	return gmod_combine_lock
 end
 
-function ENT:Setup(ply,door, value_off, value_on, description,entityout, Whitelist_type)
+function ENT:Setup(ply,door, value_off, value_on, description,entityout, Whitelist_type,Whitelist)
 
 	if not WireLib then
 		self:SetNWBool("attach_to_door",true)
 		self.Whitelist_type=false
 		
-		self.Whitelist = COMBINE_LOCK.Whitelist()
-		self.Whitelist:AddOwner(ply)
+		self.Whitelist = COMBINE_LOCK.Whitelist(Whitelist)
+		if ply then
+			self.Whitelist:AddOwner(ply)
+		end
 		return 
 	end
 	self.Owner=ply
 	self:SetNWBool("attach_to_door",tobool(door))
-	self.value_off=value_off
-	self.value_on=value_on
+	self.value_off=value_off or 0
+	self.value_on=value_on or 1
 	Wire_TriggerOutput(self, "Out", self.value_off)
-	self.entityout=entityout
-	self.Whitelist_type=Whitelist_type
+	self.entityout=entityout or 0
+	self.Whitelist_type=Whitelist_type or false
 	if entityout==1 then
 		WireLib.AdjustSpecialOutputs(self, { "Out",  "Last_Player" }, { "NORMAL" , "ENTITY" })
 		Wire_TriggerOutput(self, "Last_Player", nil)
@@ -195,18 +217,20 @@ function ENT:Setup(ply,door, value_off, value_on, description,entityout, Whiteli
 	if self.Whitelist_type then
 		WireLib.CreateInputs(self, { "Allowed [ARRAY]","Blacklist [ARRAY]" })
 	else
-		self.Whitelist = COMBINE_LOCK.Whitelist()
-		self.Whitelist:AddOwner(ply)
+		self.Whitelist = COMBINE_LOCK.Whitelist(Whitelist)
+		if ply then
+			self.Whitelist:AddOwner(ply)
+		end
 	end
 end
 
 
 
 function ENT:Use(caller,activator,useType,value)
-	if not (caller:IsPlayer() and activator!=self and IsValid(self)) then return end
+	if not (caller:IsPlayer() and activator~=self and IsValid(self)) then return end
 	
 	local trace=util.TraceLine(util.GetPlayerTrace(caller))
-	if (self!=trace.Entity) then return end
+	if (self~=trace.Entity) then return end
 
 	if not self.Whitelist_type then
 		if caller:KeyDown(IN_WALK) then 
@@ -330,5 +354,5 @@ function ENT:Unlink()
 	self.IsAutoDoor=false
 end
 
-duplicator.RegisterEntityClass("gmod_combine_lock", COMBINE_LOCK.PasteEnt, "Data","value_off", "value_on", "description", "entityout","Whitelist_type","Rules","Owners" )
+duplicator.RegisterEntityClass("gmod_combine_lock", COMBINE_LOCK.PasteEnt, "Data","value_off", "value_on", "description", "entityout","Whitelist_type","Whitelist" )
 --if there is no Wiremod installed

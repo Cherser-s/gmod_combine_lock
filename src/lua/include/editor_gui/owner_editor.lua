@@ -76,7 +76,18 @@ function PANEL:createItemPanel()
 		local editopt = menu:AddSubMenu("Edit")
 		
 		local function editSteamID(id)
-			local key = table.KeyFromValue(self.Whitelist.Owners.player_ids,panel:GetSteamId())
+			local key = false
+			local oldId = panel:GetSteamId()
+			--finds both key and check if table has value
+			for K,V in ipairs(self.Whitelist.Owners.player_ids) do
+				
+				if V==id then
+					return
+				elseif oldId==V then
+					key = K
+				end
+			end
+			
 			if key then
 				self.Whitelist.Owners.player_ids[key] = id
 				panel:SetSteamId(id)
@@ -115,6 +126,7 @@ end
 
 function PANEL:MakeStringDialog(default,callback)
 	Derma_StringRequest("Add Steam ID","Enter the valid steam id:",default,function(text)
+		text = string.Trim(text)
 		if COMBINE_LOCK.IsSteamID(text) then 
 			callback(text)
 		else

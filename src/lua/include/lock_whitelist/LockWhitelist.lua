@@ -3,7 +3,7 @@ COMBINE_LOCK = COMBINE_LOCK or {}
 
 
 COMBINE_LOCK.IsSteamID=function(text)
-	local finder=string.match(text,"STEAM_0:[%d]+:[%d]+")
+	local finder=string.match(text,"^STEAM_0:[%d]+:[%d]+$")
 	return finder
 end
 

@@ -10,8 +10,9 @@ ENT.Contact			= ""
 ENT.Purpose			= ""
 ENT.Instructions	= ""
 
-ENT.Spawnable			= false
-ENT.AdminSpawnable		= false
+ENT.Category        = "Other"
+ENT.Spawnable			= true
+ENT.AdminSpawnable		= true
 
 function ENT:SetupDataTables()
 	self:NetworkVar("Bool",0,"SpriteAllow")
