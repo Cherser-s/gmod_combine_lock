@@ -89,10 +89,12 @@ function ENT:Initialize()
 	if WireLib then
 		self.Outputs = Wire_CreateOutputs(self, { "Out" })
 	end
+	
+	self:SetSpriteSize(5)
 end
 
 function ENT:AttachToDoor(door,isbone,id)
-	if not (self:GetNWBool("attach_to_door",false) and door:IsValid()) then 
+	if not (self:GetNW2Bool("attach_to_door",false) and door:IsValid()) then 
 		return 
 	end
 	if isbone then 
@@ -106,7 +108,7 @@ function ENT:AttachToDoor(door,isbone,id)
 end
 
 function ENT:TriggerDoor()
-	if not self:GetNWBool("attach_to_door",false) then
+	if not self:GetNW2Bool("attach_to_door",false) then
 		return 
 	end
 	local ent=self.attached_door
@@ -130,11 +132,12 @@ function ENT:TriggerDoor()
 end
 
 function ENT:OpenMenuCl(caller)
-
-	net.Start("gmod_combine_lock_send_whitelist")
-	net.WriteEntity(self)
-	net.WriteTable(self.Whitelist)
-	net.Send(caller)
+	if self:IsOwner(caller) then 
+		net.Start("gmod_combine_lock_send_whitelist")
+		net.WriteEntity(self)
+		net.WriteTable(self.Whitelist)
+		net.Send(caller)
+	end
 end
 
 
@@ -192,7 +195,7 @@ end
 function ENT:Setup(ply,door, value_off, value_on, description,entityout, Whitelist_type,Whitelist)
 
 	if not WireLib then
-		self:SetNWBool("attach_to_door",true)
+		self:SetNW2Bool("attach_to_door",true)
 		self.Whitelist_type=false
 		
 		self.Whitelist = COMBINE_LOCK.Whitelist(Whitelist)
@@ -202,7 +205,7 @@ function ENT:Setup(ply,door, value_off, value_on, description,entityout, Whiteli
 		return 
 	end
 	self.Owner=ply
-	self:SetNWBool("attach_to_door",tobool(door))
+	self:SetNW2Bool("attach_to_door",tobool(door))
 	self.value_off=value_off or 0
 	self.value_on=value_on or 1
 	Wire_TriggerOutput(self, "Out", self.value_off)
@@ -234,9 +237,10 @@ function ENT:Use(caller,activator,useType,value)
 
 	if not self.Whitelist_type then
 		if caller:KeyDown(IN_WALK) then 
-			if self:IsOwner(caller) then 
-				self:OpenMenuCl(caller) return 
-			end
+			
+			self:OpenMenuCl(caller) 
+			return 
+			
 		end
 	end
 	
@@ -342,14 +346,14 @@ function ENT:TriggerLock(ply)
 end
 
 function ENT:Link(door)
-	if not self:GetNWBool("attach_to_door",false) then return end
+	if not self:GetNW2Bool("attach_to_door",false) then return end
 	if not IsDoor(door) then return end
 	self.IsAutoDoor= IsAutoDoor(door)
 	self.attached_door=door
 end
 
 function ENT:Unlink()
-	if not self:GetNWBool("attach_to_door",false) then return end
+	if not self:GetNW2Bool("attach_to_door",false) then return end
 	self.attached_door=nil
 	self.IsAutoDoor=false
 end

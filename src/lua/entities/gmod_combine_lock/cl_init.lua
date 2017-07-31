@@ -5,23 +5,13 @@ surface.CreateFont("GUIFONT",{font="Arial",size=25})
 
 
 local mater=Material('sprites/glow04')
-
-local function CreateMat()
-	if not mater then
-	mater=Material('sprites/glow04')
-	end
-	mater:SetInt("$spriterendermode",7)
+mater:SetInt("$spriterendermode",7)
 	mater:SetInt("$ignorez",0)
 	mater:SetInt("$illumfactor",8)
 	mater:SetFloat("$alpha",1)
 	mater:SetInt("$nocull",1)
-end
-timer.Simple(2,CreateMat)
-
-local ply=LocalPlayer()
+	
 local sprite_position=Vector(-3.8,6.8,-8.5)
-local sprite_color=Color(0,255,0,180)
-local sprite_size=5
 
 function ENT:Initialize()
 
@@ -53,11 +43,19 @@ end)
 
 function ENT:Draw()
 	self.Entity:DrawModel()
-	if (self:GetSpriteAllow()) then
+	local drawSprites = self:GetShowSprite() or self:GetSpriteAllow()
+	if drawSprites then
 		local vect=self:LocalToWorld(sprite_position)
-
 		render.SetMaterial(mater)
-		render.DrawSprite(vect,sprite_size,sprite_size,sprite_color)
-
+		local color
+		if self:GetSpriteAllow() then
+			color = self:GetAllowedColor():ToColor()
+		elseif self:GetIsOn() then
+			color = self:GetOpenColor():ToColor()
+		else	
+			color = self:GetClosedColor():ToColor()
+		end
+		local sprite_size = self:GetSpriteSize()
+		render.DrawSprite(vect,sprite_size,sprite_size,color)
 	end
 end

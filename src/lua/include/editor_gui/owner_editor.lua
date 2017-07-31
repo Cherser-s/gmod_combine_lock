@@ -3,7 +3,7 @@ local PANEL = {}
 function PANEL:Init()
 
 	self.menu = vgui.Create("DMenuBar",self)
-	self.menu:DockMargin( -3, -6, 0, 0 )
+	self.menu:DockMargin( -3, 0, 0, 0 )
 	
 	local addmenu=self.menu:AddMenu("Add")
 	addmenu:AddOption("Add by Steam ID",function()
@@ -71,8 +71,9 @@ function PANEL:createItemPanel()
 	item.OnMousePressed=function(panel,mouse)
 		local menu = DermaMenu()
 		menu:AddOption("Delete",function() 
-			panel:Remove() 
-			end)
+			table.RemoveByValue(self.Whitelist.Owners.player_ids,panel:GetSteamId())
+			panel:Remove()
+		end)
 		local editopt = menu:AddSubMenu("Edit")
 		
 		local function editSteamID(id)
