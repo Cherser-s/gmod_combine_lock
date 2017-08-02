@@ -48,10 +48,8 @@ COMBINE_LOCK.RuleEditDialog = {
 		self.NextButton:Dock(RIGHT)
 		self.NextButton:DockMargin(5,5,5,5)
 		self.NextButton.DoClick=function()
-			if self.counter<=0 then
-				self:SetCounter( self.counter + 1 )
-				self:PickWindow()
-			end
+			self:SetCounter( self.counter + 1 )
+			self:PickWindow()			
 		end
 		self:SetCounter(-1)
 	end,
@@ -187,6 +185,7 @@ COMBINE_LOCK.RuleEditDialog = {
 						self.EditorCallback.Allowed(self)
 					else
 						self.Rule.ids = {}
+						self.EditorCallback.Disallowed(self)
 					end
 				end,
 				SetCallback = function(self,callback)
@@ -195,9 +194,53 @@ COMBINE_LOCK.RuleEditDialog = {
 			},"DPanel")
 		},
 		Team={
+			
 			vgui.RegisterTable({
+				Init = function(self)
+					self.InputStr = vgui.Create("DTextEntry",self)
+					self.InputStr:Dock(TOP)
+					self.InputStr:DockMargin(10,10,10,10)
+					
+					self.desc = vgui.Create("DLabel",self)
+					self.desc:SetText("Enter team names you want to add separated by comma.")
+					self.desc:Dock(BOTTOM)
+					self.desc:DockMargin(10,10,10,10)
+					
+					self.InputStr.OnValueChange=function(control,text)
+						local teams = string.Explode(",",text)
+						local b = true
+						if #teams>0 then							
+							for K,V in ipairs(teams) do
+								V = string.Trim(V)
+								--not empty
+								b = b and string.len(V)>0
+								
+							end
+						else 
+							b = false
+						end
+						
+						if b then 
+							self.Rule.teams = teams
+							self.EditorCallback.Allowed(self)
+						else 
+							self.EditorCallback.Disallowed(self)
+						end
+					end
+				end,
+				SetRule = function(self,rule)
+					self.Rule = rule
+					if (self.Rule.teams and #self.Rule.teams>0) then 
+						self.InputStr:SetText(string.Implode(",",self.Rule.teams))
+						self.EditorCallback.Allowed(self)
+					else
+						self.Rule.teams = {}
+						self.EditorCallback.Disallowed(self)
+					end
+				end,
 				SetCallback = function(self,callback)
 					self.EditorCallback = callback
+					
 				end
 			},"DPanel")
 		}
@@ -377,6 +420,8 @@ COMBINE_LOCK.RuleEditDialog = {
 			self.Rule = rule
 			if (isbool(rule.Allow)) then
 				self.EditorCallback.Allowed(self)
+			else 
+				self.EditorCallback.Disallowed(self)
 			end
 			
 		end,

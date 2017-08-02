@@ -21,6 +21,25 @@ COMBINE_LOCK.RULE_EDITOR = {
 			end
 			self.Whitelist.Rules = rules
 		end
+		
+		self.RuleList.OnSwap = function(listlayout,index1,index2)
+			local children = listlayout:GetChildren()
+			if index1 < 1 or index1 > #children 
+				or index2 < 1 or index2 > #children then
+					return
+			end
+			self.Whitelist.Rules[index1],self.Whitelist.Rules[index2]=self.Whitelist.Rules[index2],self.Whitelist.Rules[index1]
+			children[index1]:SetRule(self.Whitelist.Rules[index1])
+			children[index2]:SetRule(self.Whitelist.Rules[index2])
+			
+			if children[index1]:IsSelected() then
+				children[index2]:SetSelected(true)
+			elseif children[index2]:IsSelected() then
+				children[index1]:SetSelected(true)
+			end
+			listlayout:InvalidateLayout(true)
+		end
+		
 		self.button_panel = vgui.Create("DListLayout",self)
 		self.button_panel:Dock(RIGHT)
 		self.add_button = vgui.Create("DButton")
@@ -41,8 +60,8 @@ COMBINE_LOCK.RULE_EDITOR = {
 		self.edit_button.DoClick=function(caller)
 			if self.RuleList.SelectedItem then
 				local val = self.RuleList.SelectedItem:GetRule()
-				local index = table.KeyFromValue(self.Whitelist.Rules,val)
-				self:CreateEditorDialog(val,index)
+				--local index = table.KeyFromValue(self.Whitelist.Rules,val)
+				self:CreateEditorDialog(val,self.RuleList.SelectedItem)
 			end
 		end
 		
@@ -109,9 +128,41 @@ COMBINE_LOCK.RULE_EDITOR = {
 		end
 		panel:SetSelectable(true)
 		panel.label = vgui.Create("DLabel",panel)
-		panel.label:Dock(FILL)
+		panel.label:Dock(LEFT)
 		panel.label:DockMargin(20,5,5,5)
 		panel.label:SetTextColor(Color(20,20,20))
+		
+		panel.shifters = vgui.Create("DPanel",panel)
+		panel.shifters:Dock(RIGHT)
+		panel.shifters:DockMargin(5,5,5,5)
+		
+		panel.shift_up = vgui.Create("DImageButton",panel.shifters)
+		panel.shift_up:Dock(TOP)
+		panel.shift_up:DockMargin(5,5,5,5)
+		panel.shift_up:SetImage("icon16/arrow_up.png")
+		panel.shift_up.DoClick = function()
+			local parent = panel:GetParent()
+			local index = table.KeyFromValue(parent:GetChildren(),panel)
+			panel:GetParent():OnSwap(index,index-1)
+		end
+		
+		panel.shift_down = vgui.Create("DImageButton",panel.shifters)
+		panel.shift_down:Dock(BOTTOM)
+		panel.shift_down:DockMargin(5,5,5,5)
+		panel.shift_down:SetImage("icon16/arrow_down.png")
+		panel.shift_down.DoClick = function()
+			local parent = panel:GetParent()
+			local index = table.KeyFromValue(parent:GetChildren(),panel)
+			panel:GetParent():OnSwap(index,index+1)
+		end
+		
+		
+		function panel:PerformLayout()
+			local w,h = self:GetSize()
+			panel.label:SetWidth(w*0.7)
+			panel.shifters:SetWidth(w*0.1)
+		end
+		
 		function panel:SetRule(Rule)
 			self.AttachedRule = Rule
 			local data = COMBINE_LOCK.RULE_EDITOR.RuleListItem[Rule.Type](Rule)
@@ -151,7 +202,7 @@ COMBINE_LOCK.RULE_EDITOR = {
 		end
 		return panel
 	end,
-	CreateEditorDialog = function(self,Rule,index)
+	CreateEditorDialog = function(self,Rule,attached_panel)
 		local frame = vgui.Create("combine_lock_rule_edit_dialog")
 		frame:SetSize(300,400)
 		frame:Center()
@@ -159,8 +210,9 @@ COMBINE_LOCK.RULE_EDITOR = {
 		frame:SetRule(table.Copy(Rule))
 		frame:SetOnFinishedCallback({
 			OnSuccess = function(caller,rule)
-				if Rule~=nil then
-					self.RuleList:GetChildren()[index]:SetRule(rule)
+				if Rule~=nil and ispanel(attached_panel) and attached_panel:IsValid() then					
+					local index = table.KeyFromValue(self.Whitelist.Rules,Rule)
+					attached_panel:SetRule(rule)
 					self.Whitelist.Rules[index] = rule
 				else
 					table.insert(self.Whitelist.Rules,rule)
