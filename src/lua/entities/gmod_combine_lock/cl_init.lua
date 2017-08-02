@@ -10,7 +10,7 @@ mater:SetInt("$spriterendermode",7)
 	mater:SetInt("$illumfactor",8)
 	mater:SetFloat("$alpha",1)
 	mater:SetInt("$nocull",1)
-	
+
 local sprite_position=Vector(-3.8,6.8,-8.5)
 
 function ENT:Initialize()
@@ -20,12 +20,12 @@ end
 net.Receive("gmod_combine_lock_send_whitelist",function()
 	local ent = net.ReadEntity()
 	local whitelist = COMBINE_LOCK.Whitelist(net.ReadTable())
-	
+
 	local frame = vgui.Create("combine_lock_editor_main")
 	frame:SetSize(350,400)
 	frame:Center()
 	frame:SetData(whitelist)
-	
+	frame:SetPropertyEntity(ent)
 	function frame:OnClose()
 		--send data back
 		net.Start("gmod_combine_lock_receive_whitelist")
@@ -33,10 +33,10 @@ net.Receive("gmod_combine_lock_send_whitelist",function()
 		net.WriteTable(whitelist)
 		net.SendToServer()
 	end
-	
+
 	frame:MakePopup()
-	
-	
+
+
 end)
 
 
@@ -52,7 +52,7 @@ function ENT:Draw()
 			color = self:GetAllowedColor():ToColor()
 		elseif self:GetIsOn() then
 			color = self:GetOpenColor():ToColor()
-		else	
+		else
 			color = self:GetClosedColor():ToColor()
 		end
 		local sprite_size = self:GetSpriteSize()
