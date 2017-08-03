@@ -89,10 +89,11 @@ function Whitelist:New(copy)
 		instance.Owners = {}
 		instance.Owners.player_ids={}
 		instance.Owners.player_rules = {Admins = false, SuperAdmins = false}
+		instance.Def_Behavior = false
 	else
 		instance.Owners = copy.Owners
 		instance.Rules = copy.Rules
-		instance.Def_Behavior = false
+		instance.Def_Behavior = tobool(copy.Def_Behavior)
 	end
 
 	setmetatable(instance,Whitelist)
@@ -148,7 +149,8 @@ Whitelist.CheckWhitelist = function(data)
 		end
 	end
 
-	if not (isbool(data.Owners.player_rules.Admins) and isbool(data.Owners.player_rules.SuperAdmins)) then
+	if not ((isbool(data.Def_Behavior) or data.Def_Behavior==nil) and
+			isbool(data.Owners.player_rules.Admins) and isbool(data.Owners.player_rules.SuperAdmins)) then
 		return false
 	end
 
