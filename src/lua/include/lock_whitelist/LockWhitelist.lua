@@ -78,6 +78,8 @@ COMBINE_LOCK.RuleTypes = {
 		Desc = "Allow players from specified team use the entity."
 	}
 }
+
+
 local Whitelist = {}
 Whitelist.__index = Whitelist
 
@@ -92,7 +94,7 @@ function Whitelist:New(copy)
 		instance.Def_Behavior = false
 	else
 		instance.Owners = copy.Owners
-		instance.Rules = copy.Rules
+		instance.Rules = Whitelist.CopyRules(copy.Rules)
 		instance.Def_Behavior = tobool(copy.Def_Behavior)
 	end
 
@@ -212,13 +214,22 @@ function Whitelist:AllowSuperAdmins(bool)
 end
 	--static
 Whitelist.IsRule = function(Rule)
-		--[[if not isstring(Rule.Type) then
-			return false
-		end]]
 	local rulehandler = COMBINE_LOCK.RuleTypes[Rule.Type]
-	return isbool(Rule.Allow) and rulehandler and rulehandler.CheckRule(Rule)
+	return isbool(Rule.Allow) and ((not rulehandler) or rulehandler.CheckRule(Rule))
 end
 
+--copies rule into table if ruletype if specified here
+--must already be checked (private method)
+Whitelist.CopyRules = function(Rules)
+	local outrules = {}
+	for K,Rule in ipairs(Rules) do
+		local rulehandler = COMBINE_LOCK.RuleTypes[Rule.Type]
+		if rulehandler then
+			table.insert(outrules,Rule)
+		end
+	end
+	return outrules
+end
 
 setmetatable(Whitelist,{
 
