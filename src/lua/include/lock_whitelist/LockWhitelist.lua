@@ -139,7 +139,8 @@ end
 function Whitelist:SetWhitelistData(data)
 	if self.CheckWhitelist(data) then
 		self.Owners = data.Owners
-		self.Rules = data.Rules
+		self.Rules = Whitelist.CopyRules(data.Rules)
+		self.Def_Behavior = tobool(data.Def_Behavior)
 	end
 end
 
