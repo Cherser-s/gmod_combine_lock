@@ -13,8 +13,6 @@ util.AddNetworkString("gmod_combine_lock_receive_whitelist")
 COMBINE_LOCK = COMBINE_LOCK or {}
 
 local model="models/props_combine/combine_lock01.mdl"
-local DenySound=Sound('buttons/combine_button_locked.wav', 75, 100, 1, CHAN_AUTO )
-local ApplySound=Sound('buttons/combine_button1.wav', 75, 100, 1, CHAN_AUTO )
 
 
 local function IsDoor(ent)
@@ -307,14 +305,13 @@ end
 if WireLib then
 	function ENT:Think()
 		self.BaseClass.Think(self)
-		if self:GetSpriteAllow() and self.LastTrigger>CurTime() then
-
+		if self:GetSpriteAllow() and self.LastTrigger<=CurTime() then
 			self:SetSpriteAllow(false)
 		end
 	end
 else
 	function ENT:Think()
-		if self:GetSpriteAllow() and self.LastTrigger>CurTime() then
+		if self:GetSpriteAllow() and self.LastTrigger<=CurTime() then
 			self:SetSpriteAllow(false)
 		end
 	end
