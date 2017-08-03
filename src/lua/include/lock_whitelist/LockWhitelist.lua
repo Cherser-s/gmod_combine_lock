@@ -29,24 +29,24 @@ COMBINE_LOCK.RuleTypes = {
 	SteamId = {
 		Check =
 		function(ply,data)
-			
+
 			local sid = ply:SteamID()
 			for K,V in ipairs(data.ids) do
-				if V==sid then 
-					return true 
+				if V==sid then
+					return true
 				end
 			end
 			return false
 		end,
 		CheckRule = function(Rule)
-		
-			
+
+
 			if not istable(Rule.ids) or #Rule.ids == 0 then
-				return false 
+				return false
 			end
 			for K,V in ipairs(Rule.ids) do
 				--check steam id
-				if not (isstring(V) and COMBINE_LOCK.IsSteamID(V)) then 
+				if not (isstring(V) and COMBINE_LOCK.IsSteamID(V)) then
 					return false
 				end
 			end
@@ -59,17 +59,17 @@ COMBINE_LOCK.RuleTypes = {
 			local teamn=team.GetName(ply:Team())
 			for K,V in pairs(data.teams) do
 				if teamn==V then
-					return true 
-				end 
+					return true
+				end
 			end
 		end,
 		CheckRule = function(Rule)
 			if #Rule.teams == 0 then
-				return false 
+				return false
 			end
 			for K,V in ipairs(Rule.teams) do
 				--check steam id
-				if not isstring(V) then 
+				if not isstring(V) then
 					return false
 				end
 			end
@@ -85,34 +85,35 @@ function Whitelist:New(copy)
 	local instance = {}
 	if not (copy and Whitelist.CheckWhitelist(copy)) then
 		instance.Rules = {}
-			
+
 		instance.Owners = {}
 		instance.Owners.player_ids={}
 		instance.Owners.player_rules = {Admins = false, SuperAdmins = false}
-	else 
+	else
 		instance.Owners = copy.Owners
 		instance.Rules = copy.Rules
+		instance.Def_Behavior = false
 	end
-		
+
 	setmetatable(instance,Whitelist)
-	
+
 	return instance
 end
-	
+
 function Whitelist:CheckRule(ply)
 	for K,Rule in ipairs(self.Rules) do
-		if (COMBINE_LOCK.RuleTypes[Rule.Type].Check(ply,Rule)) then 
+		if (COMBINE_LOCK.RuleTypes[Rule.Type].Check(ply,Rule)) then
 			return Rule.Allow
 		end
-			
+
 	end
-	return false
+	return self.Def_Behavior
 end
-	
+
 function Whitelist:CheckOwner(ply)
-	if (self.Owners.player_rules.Admins and ply:IsAdmin()) 
+	if (self.Owners.player_rules.Admins and ply:IsAdmin())
 		or (self.Owners.player_rules.SuperAdmins and ply:IsSuperAdmin())
-	then 
+	then
 		return true
 	end
 	local sid = ply:SteamID()
@@ -124,27 +125,35 @@ function Whitelist:CheckOwner(ply)
 	return false
 end
 
+function Whitelist:SetDefBehavior(state)
+	self.Def_Behavior = tobool(state)
+end
+
+function Whitelist:GetDefBehavior()
+	return self.Def_Behavior
+end
+
 function Whitelist:SetWhitelistData(data)
 	if self.CheckWhitelist(data) then
 		self.Owners = data.Owners
 		self.Rules = data.Rules
 	end
 end
-	
+
 Whitelist.CheckWhitelist = function(data)
 		--check owner table
 	for K,Owner in ipairs(data.Owners.player_ids) do
-		if not (isstring(Owner) and COMBINE_LOCK.IsSteamID(Owner)) then 
-			return false 
+		if not (isstring(Owner) and COMBINE_LOCK.IsSteamID(Owner)) then
+			return false
 		end
 	end
-		
-	if not (isbool(data.Owners.player_rules.Admins) and isbool(data.Owners.player_rules.SuperAdmins)) then 
+
+	if not (isbool(data.Owners.player_rules.Admins) and isbool(data.Owners.player_rules.SuperAdmins)) then
 		return false
 	end
-			
+
 	for K,Rule in ipairs(data.Rules) do
-		if not Whitelist.IsRule(Rule) then 
+		if not Whitelist.IsRule(Rule) then
 			return false
 		end
 	end
@@ -152,12 +161,12 @@ Whitelist.CheckWhitelist = function(data)
 end
 
 function Whitelist:IsAllowedAdminsEdit()
-	return self.Owners.player_rules.Admins 
+	return self.Owners.player_rules.Admins
 end
 
 function Whitelist:IsAllowedSuperAdminsEdit()
-	return self.Owners.player_rules.SuperAdmins 
-end	
+	return self.Owners.player_rules.SuperAdmins
+end
 
 function Whitelist:AllowAdminsEdit(val)
 	self.Owners.player_rules.Admins = val
@@ -165,21 +174,21 @@ end
 
 function Whitelist:AllowSuperAdminsEdit(val)
 	self.Owners.player_rules.SuperAdmins = val
-end	
-	
+end
+
 function Whitelist:AddOwner(ply)
-		
+
 	if isentity(ply) and ply:IsPlayer() then
 		return self:AddOwner(ply:SteamID())
 	elseif isstring(ply) and COMBINE_LOCK.IsSteamID(ply) then
 		if not table.HasValue(self.Owners.player_ids,ply) then
 			table.insert(self.Owners.player_ids,ply)
 			return true
-		else 
+		else
 			return false
 		end
-			
-	else 
+
+	else
 		error("Expected string or player, got "..type(ply))
 	end
 end
@@ -188,11 +197,11 @@ function Whitelist:RemoveOwner(ply)
 		self:RemoveOwner(ply:SteamID())
 	elseif isstring(ply) and COMBINE_LOCK.IsSteamID(ply) then
 		table.RemoveByValue(self.Owners.player_ids,ply)
-	else 
+	else
 		error("Expected string or player, got "..type(ply))
 	end
 end
-	
+
 function Whitelist:AllowAdmins(bool)
 	self.Owners.player_rules.Admins = bool
 end
@@ -202,7 +211,7 @@ end
 	--static
 Whitelist.IsRule = function(Rule)
 		--[[if not isstring(Rule.Type) then
-			return false 
+			return false
 		end]]
 	local rulehandler = COMBINE_LOCK.RuleTypes[Rule.Type]
 	return isbool(Rule.Allow) and rulehandler and rulehandler.CheckRule(Rule)
@@ -210,7 +219,7 @@ end
 
 
 setmetatable(Whitelist,{
-	
+
 	__call =  Whitelist.New
 
 	})
