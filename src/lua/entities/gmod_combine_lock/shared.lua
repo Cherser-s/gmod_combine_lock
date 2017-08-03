@@ -28,6 +28,9 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Vector",2,"ClosedColor",{ KeyName = "closedcolor", Edit = {type = "VectorColor", order = 3,category = "Sprite properties"}})
 	self:NetworkVar("Float",1,"SpriteSize",{KeyName = "spritesize",Edit = {type = "Float",order = 4,min = 1,max = 15,category = "Sprite properties"}})
 
+	if CLIENT then
+		return
+	end
 	self:SetSpriteAllow(false)
 	self:SetIsOn(false)
 
