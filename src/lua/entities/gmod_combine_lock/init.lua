@@ -204,15 +204,22 @@ function ENT:Setup(ply,door, value_off, value_on, description,entityout, Whiteli
 	self:SetNW2Bool("attach_to_door",tobool(door))
 	self.value_off=value_off or 0
 	self.value_on=value_on or 1
-	Wire_TriggerOutput(self, "Out", self.value_off)
 	self.entityout=entityout or 0
 	self.Whitelist_type=Whitelist_type or false
+	
 	if entityout==1 then
 		WireLib.AdjustSpecialOutputs(self, { "Out",  "Last_Player" }, { "NORMAL" , "ENTITY" })
 		Wire_TriggerOutput(self, "Last_Player", nil)
 	else
 		Wire_AdjustOutputs(self, { "Out" })
 	end
+
+	if self:GetIsOn() then
+		Wire_TriggerOutput(self, "Out",self.value_on)
+	else
+		Wire_TriggerOutput(self, "Out",self.value_off)
+	end
+
 	if self.Whitelist_type then
 		WireLib.CreateInputs(self, { "Allowed [ARRAY]","Blacklist [ARRAY]" })
 	else
@@ -236,10 +243,8 @@ function ENT:Use(caller,activator,useType,value)
 
 			self:OpenMenuCl(caller)
 			return
-
 		end
 	end
-
 
 	self:OpenLock(caller)
 end
@@ -324,14 +329,13 @@ function ENT:TriggerLock(ply)
 	if WireLib then
 		if not on then
 			self.ValueWire = self.value_on
-
 		else
 			self.ValueWire = self.value_off
 		end
 
 		Wire_TriggerOutput(self, "Out", self.ValueWire)
 
-		if self.entityout==1 and isEntity(ply) and ply:IsPlayer() then
+		if self.entityout==1 and isentity(ply) and ply:IsPlayer() then
 			Wire_TriggerOutput(self, "Last_Player", ply)
 		end
 	end
