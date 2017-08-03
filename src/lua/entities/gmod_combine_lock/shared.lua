@@ -1,7 +1,7 @@
 ENT.Type = "anim"
 if WireLib then
 ENT.Base = "base_wire_entity"
-else 
+else
 ENT.Base = "base_entity"
 end
 ENT.PrintName		= "Combine Lock"
@@ -15,15 +15,34 @@ ENT.Spawnable		= true
 ENT.AdminOnly		= false
 
 function ENT:SetupDataTables()
+
+	self:NetworkVar("Float",0,"WaitTime",{KeyName = "waittime",
+		Edit = {type = "Float",min = 0.5,max = 5,order = 0,category = "Trigger properties"}})
+	self:NetworkVar("String",0,"AllowSound",{KeyName = "allowsound",Edit = {type = "Generic",order = 1,category = "Trigger properties"}})
+	self:NetworkVar("String",1,"DenySound",{KeyName = "denysound",Edit = {type = "Generic",order = 2,category = "Trigger properties"}})
 	self:NetworkVar("Bool",0,"SpriteAllow")
 	self:NetworkVar("Bool",1,"IsOn")
 	self:NetworkVar("Bool",2,"ShowSprite",{ KeyName = "showsprite", Edit = {type = "Boolean", order = 1,category = "Sprite properties"}})
 	self:NetworkVar("Vector",0,"AllowedColor",{ KeyName = "allowedcolor", Edit = {type = "VectorColor", order = 0,category = "Sprite properties"}})
 	self:NetworkVar("Vector",1,"OpenColor",{ KeyName = "opencolor", Edit = {type = "VectorColor", order = 2,category = "Sprite properties"}})
 	self:NetworkVar("Vector",2,"ClosedColor",{ KeyName = "closedcolor", Edit = {type = "VectorColor", order = 3,category = "Sprite properties"}})
-	self:NetworkVar("Float",0,"SpriteSize",{KeyName = "spritesize",Edit = {type = "Float",order = 4,min = 1,max = 15,category = "Sprite properties"}})
+	self:NetworkVar("Float",1,"SpriteSize",{KeyName = "spritesize",Edit = {type = "Float",order = 4,min = 1,max = 15,category = "Sprite properties"}})
+
 	self:SetSpriteAllow(false)
 	self:SetIsOn(false)
+
+
+	if self:GetWaitTime()<=0 then
+		self:SetWaitTime(0.5)
+	end
+
+	if self:GetAllowSound()=="" then
+		self:SetAllowSound('buttons/combine_button1.wav')
+	end
+
+	if self:GetDenySound()=="" then
+		self:SetDenySound('buttons/combine_button_locked.wav')
+	end
 end
 
 
@@ -34,7 +53,7 @@ properties.Add("gmod_combine_lock_show_editor",{
 	Filter = function( self, ent, ply)
 		if not (IsValid(ent) and ent:GetClass()=="gmod_combine_lock") then
 			return false
-		else 
+		else
 			return true
 		end
 	end,

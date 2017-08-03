@@ -15,16 +15,14 @@ COMBINE_LOCK = COMBINE_LOCK or {}
 local model="models/props_combine/combine_lock01.mdl"
 local DenySound=Sound('buttons/combine_button_locked.wav', 75, 100, 1, CHAN_AUTO )
 local ApplySound=Sound('buttons/combine_button1.wav', 75, 100, 1, CHAN_AUTO )
-local WaitTime=0.8
-local SpriteTime=0.5
 
 
 local function IsDoor(ent)
 	local cl=ent:GetClass()
 	if (cl=="func_door" or cl=="func_door_rotating" or cl=="prop_door_rotating") then
-		return true 
+		return true
 	end
-	if cl=="prop_dynamic" then 
+	if cl=="prop_dynamic" then
 		return IsAutoDoor(ent)
 	end
 	return false
@@ -71,7 +69,7 @@ function IsAutoDoor(ent)
 	for K,V in pairs(DoorTable["prop_dynamic"]) do
 		if mod==V then
 			return true
-		end 
+		end
 	end
 	return false
 end
@@ -89,15 +87,15 @@ function ENT:Initialize()
 	if WireLib then
 		self.Outputs = Wire_CreateOutputs(self, { "Out" })
 	end
-	
+
 	self:SetSpriteSize(5)
 end
 
 function ENT:AttachToDoor(door,isbone,id)
-	if not (self:GetNW2Bool("attach_to_door",false) and door:IsValid()) then 
-		return 
+	if not (self:GetNW2Bool("attach_to_door",false) and door:IsValid()) then
+		return
 	end
-	if isbone then 
+	if isbone then
 		self:FollowBone(door,id)
 	else
 		self:SetMoveType(MOVETYPE_NONE)
@@ -109,7 +107,7 @@ end
 
 function ENT:TriggerDoor()
 	if not self:GetNW2Bool("attach_to_door",false) then
-		return 
+		return
 	end
 	local ent=self.attached_door
 	if not ent then return end
@@ -117,14 +115,14 @@ function ENT:TriggerDoor()
 	if self.IsAutoDoor then
 		if self:GetIsOn() then
 			ent:Fire("setanimation","open",0)
-		else 
+		else
 			ent:Fire("setanimation","close",0)
 
 		end
-	else 
+	else
 		if self:GetIsOn() then
 			ent:Fire("unlock")
-		else 
+		else
 			ent:Fire("close")
 			ent:Fire("lock")
 		end
@@ -132,7 +130,7 @@ function ENT:TriggerDoor()
 end
 
 function ENT:OpenMenuCl(caller)
-	if self:IsOwner(caller) then 
+	if self:IsOwner(caller) then
 		net.Start("gmod_combine_lock_send_whitelist")
 		net.WriteEntity(self)
 		net.WriteTable(self.Whitelist)
@@ -150,14 +148,14 @@ net.Receive("gmod_combine_lock_receive_whitelist",function(len,ply)
 end)
 
 function ENT:SetWhitelistData(data,sender)
-	
+
 	if self.Whitelist:CheckOwner(sender) then
 		self.Whitelist:SetWhitelistData(data)
 	end
 end
 
- 
-function ENT:DupeDeploy(ply,door, value_off, value_on, description,entityout, Whitelist_type,Whitelist)	
+
+function ENT:DupeDeploy(ply,door, value_off, value_on, description,entityout, Whitelist_type,Whitelist)
 	self:Setup(ply,door, value_off, value_on, description,entityout, Whitelist_type,Whitelist)
 end
 --just in case it will be spawnable from main menu
@@ -167,13 +165,13 @@ function ENT:SpawnFunction(ply,trace,class)
 	local Ang = trace.HitNormal:Angle()
 	Ang.pitch,Ang.roll= Ang.roll,-Ang.pitch
 	Ang.yaw = Ang.yaw-90
-    if ( not ply:CheckLimit( "combine_locks" ) ) then 
-		return false 
+    if ( not ply:CheckLimit( "combine_locks" ) ) then
+		return false
 	end
-	
+
 	local gmod_combine_lock = ents.Create( "gmod_combine_lock" )
-	if (not gmod_combine_lock:IsValid()) then 
-		return false 
+	if (not gmod_combine_lock:IsValid()) then
+		return false
 	end
 
 	gmod_combine_lock:SetAngles( Ang )
@@ -181,13 +179,13 @@ function ENT:SpawnFunction(ply,trace,class)
 	gmod_combine_lock:Spawn()
 	gmod_combine_lock:Setup(ply)
 	gmod_combine_lock:Activate()
-	
+
 	ply:AddCount( "combine_locks", gmod_combine_lock )
 	local min = gmod_combine_lock:OBBMins()
 	gmod_combine_lock:SetPos( trace.HitPos - trace.HitNormal * min.z/2.8 )
-	
-	
-	
+
+
+
 	ply:AddCleanup( "combine_locks", gmod_combine_lock )
 	return gmod_combine_lock
 end
@@ -197,12 +195,12 @@ function ENT:Setup(ply,door, value_off, value_on, description,entityout, Whiteli
 	if not WireLib then
 		self:SetNW2Bool("attach_to_door",true)
 		self.Whitelist_type=false
-		
+
 		self.Whitelist = COMBINE_LOCK.Whitelist(Whitelist)
 		if ply then
 			self.Whitelist:AddOwner(ply)
 		end
-		return 
+		return
 	end
 	self.Owner=ply
 	self:SetNW2Bool("attach_to_door",tobool(door))
@@ -231,49 +229,49 @@ end
 
 function ENT:Use(caller,activator,useType,value)
 	if not (caller:IsPlayer() and activator~=self and IsValid(self)) then return end
-	
+
 	local trace=util.TraceLine(util.GetPlayerTrace(caller))
 	if (self~=trace.Entity) then return end
 
 	if not self.Whitelist_type then
-		if caller:KeyDown(IN_WALK) then 
-			
-			self:OpenMenuCl(caller) 
-			return 
-			
+		if caller:KeyDown(IN_WALK) then
+
+			self:OpenMenuCl(caller)
+			return
+
 		end
 	end
-	
-	
+
+
 	self:OpenLock(caller)
 end
 
 function ENT:OpenLock(ply)
-	
+
 	local trigger = true
-	
+
 	--check if we cooldown passed
-	if self.LastTrigger > CurTime() then 
+	if self.LastTrigger > CurTime() then
 		return
 	end
 	--if player passed as an arg, check the rules
 	if isentity(ply) then
-		if self.Whitelist_type then 
+		if self.Whitelist_type then
 			trigger=self:WireCheck(ply)
 		else
 			trigger=self.Whitelist:CheckRule(ply)
 		end
 	end
-	
+
 	if trigger then
-		self.LastTrigger = CurTime() + SpriteTime
+		self.LastTrigger = CurTime() + self:GetWaitTime()
 		self:TriggerLock(ply)
-		self:EmitSound(ApplySound) 
-			
+		self:EmitSound(self:GetAllowSound())
+
 		self:SetSpriteAllow(true)
-		
-	else 
-		self:EmitSound(DenySound)
+
+	else
+		self:EmitSound(self:GetDenySound())
 	end
 end
 
@@ -293,13 +291,13 @@ if WireLib then
 	end
 end
 
-function ENT:Backdoor()	
+function ENT:Backdoor()
 	self:OpenLock()
 end
 
 
 function ENT:IsOwner(ply)
-	if self.Whitelist_type then 
+	if self.Whitelist_type then
 		return false
 	end
 
@@ -310,7 +308,7 @@ if WireLib then
 	function ENT:Think()
 		self.BaseClass.Think(self)
 		if self:GetSpriteAllow() and self.LastTrigger>CurTime() then
-			
+
 			self:SetSpriteAllow(false)
 		end
 	end
@@ -326,17 +324,17 @@ end
 function ENT:TriggerLock(ply)
 	if (not IsValid(self)) then return end
 	local on=self:GetIsOn()
-	if WireLib then 
+	if WireLib then
 		if not on then
 			self.ValueWire = self.value_on
-			
+
 		else
 			self.ValueWire = self.value_off
 		end
 
 		Wire_TriggerOutput(self, "Out", self.ValueWire)
-		
-		if self.entityout==1 and isEntity(ply) and ply:IsPlayer() then 
+
+		if self.entityout==1 and isEntity(ply) and ply:IsPlayer() then
 			Wire_TriggerOutput(self, "Last_Player", ply)
 		end
 	end

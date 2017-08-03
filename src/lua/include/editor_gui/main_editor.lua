@@ -5,7 +5,6 @@ end
 include('include/editor_gui/rule_editor.lua')
 include('include/editor_gui/rule_dialog.lua')
 include('include/editor_gui/owner_editor.lua')
-include('include/editor_gui/properties_editor.lua')
 local PANEL = {}
 function PANEL:Init()
 	local propsheet = vgui.Create("DPropertySheet",self)
