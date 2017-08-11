@@ -6,7 +6,36 @@ end
 local PANEL = {}
 
 function PANEL:Init()
-	self.Scroller = vgui.Create("DScrollPanel",self)
+--make vertical DSplitter
+	local VertDivisor = vgui.Create("DVerticalDivider",self)
+	VertDivisor:Dock(FILL)
+	VertDivisor:SetTopMin(20)
+	VertDivisor:SetTopMax(60)
+	VertDivisor:SetTopHeight(30)
+	local upperSplitPanel = vgui.Create("DPanel",VertDivisor)
+	VertDivisor:SetTop(upperSplitPanel)
+--add checkboxes for Def_Behavior field
+	VertDivisor:SetDividerHeight(4)
+	local lowerSplitPanel = vgui.Create("DPanel",VertDivisor)
+	VertDivisor:SetBottom(lowerSplitPanel)
+
+	self.Def_Behavior_Cbox = vgui.Create("DCheckBoxLabel",upperSplitPanel)
+	self.Def_Behavior_Cbox:SetText("Default behaviour")
+	self.Def_Behavior_Cbox:Dock(TOP)
+	self.Def_Behavior_Cbox:DockMargin(10,5,5,10)
+	self.Def_Behavior_Cbox:SetTextColor(Color(0,0,0))
+	self.Def_Behavior_Cbox.OnChange = function(panel,value)
+		self.Whitelist.Def_Behavior = value
+		local text = "Default behaviour: "
+		if value then
+			text = text.."allow"
+		else
+			text = text.."deny"
+		end
+		panel:SetText(text)
+	end
+--create rule panel
+	self.Scroller = vgui.Create("DScrollPanel",lowerSplitPanel)
 	self.Scroller:Dock(LEFT)
 	self.Scroller:SetPaintBackground( true )
 	self.Scroller:SetBackgroundColor( Color( 100, 100, 100 ) )
@@ -41,7 +70,7 @@ function PANEL:Init()
 		listlayout:InvalidateLayout(true)
 	end
 
-	self.button_panel = vgui.Create("DListLayout",self)
+	self.button_panel = vgui.Create("DListLayout",lowerSplitPanel)
 	self.button_panel:Dock(RIGHT)
 	self.add_button = vgui.Create("DButton")
 	self.add_button:SetText("Add")
@@ -173,6 +202,7 @@ PANEL.CreateRuleItem = function()
 			text = text..", "..data
 		end
 		panel.label:SetText(text)
+
 	end
 
 	function panel:GetRule()
@@ -233,6 +263,8 @@ end
 
 function PANEL:SetData(whitelist)
 	self.Whitelist = whitelist
+
+	self.Def_Behavior_Cbox:SetValue(self.Whitelist.Def_Behavior or false)
 	--also set it to children editors
 	self.RuleList:Clear()
 
