@@ -69,6 +69,9 @@ properties.Add("gmod_combine_lock_show_editor",{
 	end,
 	Receive = function( self, length, player ) -- The action to perform upon using the property ( Serverside )
 		local ent = net.ReadEntity()
+		if not self:Filter(ent,player) then
+			return
+		end
 		ent:OpenMenuCl(player)
 	end
 
