@@ -143,7 +143,7 @@ function Whitelist:SetWhitelistData(data)
 		self.Def_Behavior = tobool(data.Def_Behavior)
 	end
 end
-
+--static
 Whitelist.CheckWhitelist = function(data)
 		--check owner table
 	for K,Owner in ipairs(data.Owners.player_ids) do
